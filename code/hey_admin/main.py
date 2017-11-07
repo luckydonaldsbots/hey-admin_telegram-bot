@@ -8,7 +8,6 @@ from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
-from .prefix_middleware import PrefixMiddleware
 from luckydonaldUtils.exceptions import assert_type_or_raise
 import re
 from html import escape
@@ -18,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 from teleflask import Teleflask
 app = Flask(__name__)
-# app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix="/"+URL_PATH)
 
 # sentry = add_error_reporting(app)
 bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/income/{API_KEY}")
@@ -38,6 +36,19 @@ def url_root():
 def bar():
     return "The URL for this page is {}".format(url_for('bar'))
 #  end if
+
+
+@bot.command("start")
+def cmd_start(update, text):
+    return "test."
+# end def
+
+
+@bot.command("help")
+def cmd_start(update, text):
+    return "test."
+# end def
+
 
 @bot.command("admin")
 @bot.command("admins")
