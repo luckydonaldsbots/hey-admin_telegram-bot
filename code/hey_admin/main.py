@@ -6,6 +6,8 @@ from pytgbot.api_types.receivable.peer import Chat, User
 from pytgbot.api_types.receivable.updates import Message, Update
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 from .langs.en import Lang as LangEN
+from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
+from luckydonaldUtils.exceptions import assert_type_or_raise
 import re
 from html import escape
 
@@ -15,11 +17,16 @@ logger = logging.getLogger(__name__)
 from teleflask import Teleflask
 app = Flask(__name__)
 # sentry = add_error_reporting(app)
-bot = Teleflask(app)
+bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/income/{API_KEY}")
+bot.init_app(app)
 
-assert isinstance(bot.bot, Bot)
+assert_type_or_raise(bot.bot, Bot)
 AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@admins?(\\W|$).*")
 
+@app.route("/")
+def url_root():
+    return "Yep."
+# end def
 
 @bot.command("admin")
 @bot.command("admins")

@@ -1,10 +1,8 @@
+#!/bin/bash
+set -x;
 
-# exec CMD
-
-CMD="/usr/local/bin/uwsgi --ini /etc/uwsgi/uwsgi.ini --need-app --die-on-term --socket='/sockets/${URL_PATH}.sock' $@";
-
-echo ">> exec docker CMD"
-echo "$CMD"
-exec "$CMD"
-
-
+chown -R $USER_UID:$GROUP_UID /sockets/bots/
+CMD="/usr/local/bin/uwsgi";
+ARGS="--ini /config/uwsgi.ini --need-app --die-on-term --socket=/sockets/bots/${URL_PATH}.sock $@";
+echo "exec gosu $USER_UID:$GROUP_UID $CMD ''$ARGS''";
+exec gosu $USER_UID:$GROUP_UID $CMD $ARGS
