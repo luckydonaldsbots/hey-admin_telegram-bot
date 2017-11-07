@@ -44,7 +44,6 @@ RUN set -x \
 WORKDIR /app
 ENTRYPOINT ["/entrypoint.sh"]
 
-
 COPY $FOLDER/entrypoint.sh      /
 COPY $FOLDER/uwsgi.ini          /config/
 COPY $FOLDER/requirements.txt   /config/
