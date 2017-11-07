@@ -45,11 +45,10 @@ WORKDIR /app
 ENTRYPOINT ["/entrypoint.sh"]
 
 
+COPY $FOLDER/entrypoint.sh      /
 COPY $FOLDER/uwsgi.ini          /config/
 COPY $FOLDER/requirements.txt   /config/
-RUN pip install -r /config/requirements.txt
+RUN chmod +x /entrypoint.sh  &&  pip install -r /config/requirements.txt
 
-COPY $FOLDER/entrypoint.sh      /
-RUN chmod +x /entrypoint.sh
 
 COPY $FOLDER/code /app
