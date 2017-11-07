@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from flask import Flask
+from flask import Flask, url_for
 from luckydonaldUtils.logger import logging
 from pytgbot import Bot
 from pytgbot.api_types.receivable.peer import Chat, User
 from pytgbot.api_types.receivable.updates import Message, Update
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
+
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
+from .prefix_middleware import PrefixMiddleware
 from luckydonaldUtils.exceptions import assert_type_or_raise
 import re
 from html import escape
@@ -16,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 from teleflask import Teleflask
 app = Flask(__name__)
+# app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix="/"+URL_PATH)
+
 # sentry = add_error_reporting(app)
 bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/income/{API_KEY}")
 bot.init_app(app)
@@ -25,8 +29,15 @@ AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@admins?(\\W|$).*")
 
 @app.route("/")
 def url_root():
+    import os
+    # return repr(os.environ)
     return "Yep."
 # end def
+
+@app.route('/bar')
+def bar():
+    return "The URL for this page is {}".format(url_for('bar'))
+#  end if
 
 @bot.command("admin")
 @bot.command("admins")
