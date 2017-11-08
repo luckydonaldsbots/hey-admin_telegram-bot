@@ -28,25 +28,14 @@ AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@admins?(\\W|$).*")
 
 @app.errorhandler(404)
 def url_404(error):
-    from flask import request
-    return "Nope. <br>Env: {request.environ!r}<br>Path: {request.full_path!r}<br>Url: {request.url}<br>Exception: {e}".format(request=request, e=error)
+    return "Nope."
 # end def
+
 
 @app.route("/", methods=["GET","POST"])
 def url_root():
-    import os
-    # return repr(os.environ)
-    from flask import request
-    return "Yep. <br>Env: {request.environ!r}<br>Path: {request.full_path!r}<br>Url: {request.url}".format(request=request)
+    return "Yep."
 # end def
-
-
-@app.route('/bar', methods=["GET","POST"])
-@app.route('/baz/', methods=["POST"])
-def bar():
-    from flask import request
-    return "The URL for this page is {}<br><br>Env: {request.environ!r}<br>Path: {request.full_path!r}<br>Url: {request.url}<br>Method: {request.method}".format(url_for('bar'), request=request)
-#  end if
 
 
 @app.route("/holy_hacks/shit/<path:command>")
