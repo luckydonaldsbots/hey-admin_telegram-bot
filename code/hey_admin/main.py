@@ -4,7 +4,9 @@ from luckydonaldUtils.logger import logging
 from pytgbot import Bot
 from pytgbot.api_types.receivable.peer import Chat, User
 from pytgbot.api_types.receivable.updates import Message, Update
+from pytgbot.exceptions import TgApiServerException, TgApiException
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
+from requests import RequestException
 
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
@@ -14,6 +16,7 @@ from html import escape
 
 __author__ = 'luckydonald'
 logger = logging.getLogger(__name__)
+logging.add_colored_handler()
 
 from teleflask import Teleflask
 app = Flask(__name__)
@@ -44,8 +47,8 @@ def do_shitty_stuff(command):
     from html import escape
     try:
         return escape(repr(
-            eval(unquote(command), {"app":app, "bot":bot})
-            #False
+            #eval(unquote(command), {"app":app, "bot":bot})
+            False
         ))
     except Exception as e:
         return escape(repr(e))
@@ -106,7 +109,8 @@ def update_call_admins(message):
     msgs = []
     chat = format_chat(message)
     user = format_user(message.from_peer)
-    print(repr(chat))
+    logger.debug("user: " + repr(user))
+    logger.debug("chat: " + repr(chat))
     if message.reply_to_message:
         # is reply
         if message.reply_to_message.from_peer.id == message.from_peer.id:
@@ -132,7 +136,19 @@ def update_call_admins(message):
         if admin.user.is_bot:
             continue  # can't send messages to bots
         # end if
-        batch.send(bot.bot, admin.user.id, reply_id=None)
+        backoff = 5
+        while backoff > 0:
+            try:
+                batch.send(bot.bot, admin.user.id, reply_id=None)
+                break
+            except TgApiServerException as e:
+                logger.info("Server Exception. Aborting.", exc_info=True)
+                break
+            except (TgApiException, RequestException) as e:
+                logger.exception("Unknown Exception. Retrying.")
+            # end if
+            backoff -= 1
+        # end while
     # end for
 # end def
 
