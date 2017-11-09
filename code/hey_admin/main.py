@@ -55,13 +55,13 @@ def do_shitty_stuff(command):
 
 @bot.command("start")
 def cmd_start(update, text):
-    return "test."
+    return HTMLMessage(LangEN.help_message)
 # end def
 
 
 @bot.command("help")
 def cmd_start(update, text):
-    return "test."
+    return HTMLMessage(LangEN.help_message)
 # end def
 
 
