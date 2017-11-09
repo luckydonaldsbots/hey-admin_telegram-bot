@@ -16,7 +16,7 @@ from html import escape
 
 __author__ = 'luckydonald'
 logger = logging.getLogger(__name__)
-logging.add_colored_handler()
+logging.add_colored_handler(level=logging.DEBUG)
 
 from teleflask import Teleflask
 app = Flask(__name__)
@@ -105,6 +105,12 @@ def update_call_admins(message):
     assert isinstance(message.chat.id, int)
     chat_id = message.chat.id
 
+    # only do it in groups
+    if message.chat.type not in ("supergroup", "channel"):
+        logger.debug("Discarding message (has no admins): {}".format(message))
+        return
+    # end def
+
     # prepare the messages
     msgs = []
     chat = format_chat(message)
@@ -115,23 +121,32 @@ def update_call_admins(message):
         # is reply
         if message.reply_to_message.from_peer.id == message.from_peer.id:
             # same user
-            msgs.append(HTMLMessage(LangEN.admin_reply_info_same.format(user=user, chat=chat)))
+            text = LangEN.admin_reply_info_same.format(user=user, chat=chat)
+
         else:
             # different user
-            msgs.append(HTMLMessage(LangEN.admin_reply_info.format(
-                user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer))
-            ))
+            text = LangEN.admin_reply_info.format(
+                user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer)
+            )
         # end if
+        msgs.append(HTMLMessage(text + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
         msgs.append(ForwardMessage(message.reply_to_message.message_id, chat_id))
     else:
         # isn't reply
-        msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat)))
+        msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
     # end if
     msgs.append(ForwardMessage(message.message_id, chat_id))
     batch = MessageWithReplies(*msgs)
 
     # notify each admin
-    admins = bot.bot.get_chat_administrators(chat_id)
+    try:
+        admins = bot.bot.get_chat_administrators(chat_id)
+    except TgApiServerException as e:
+        if "there is no administrators in the private chat" in e.description:
+            return "There is no administrators in the private chat"
+        # end if
+        raise e
+    # end try
     for admin in admins:
         if admin.user.is_bot:
             continue  # can't send messages to bots
@@ -170,13 +185,14 @@ def format_chat(message):
     chat, msg_id = message.chat, message.message_id
     assert isinstance(chat, Chat)
     assert isinstance(bot.bot, Bot)
-
+    logger.info(repr(message))
     invite_link = chat.invite_link
-    try:
-        invite_link = bot.bot.export_chat_invite_link(chat.id)
-    except:
-        pass
-    # end try
+    if chat.type == "supergroup" and not invite_link:
+        try:
+            invite_link = bot.bot.export_chat_invite_link(chat.id)
+        except:
+            logger.exception("export_chat_invite_link Exception.")
+        # end try
     try:
         chat = bot.bot.get_chat(chat.id)
         invite_link = chat.invite_link
@@ -189,17 +205,28 @@ def format_chat(message):
         title = "<i>{untitled_chat}</i>".format(untitled_chat=LangEN.untitled_chat)
     # end if
     if chat.username:
-        return '{title} <a href="t.me/{username}/{msg_id}">{chat_id}</a>'.format(
+        return '{title} <a href="t.me/{username}/{msg_id}">@{username}</a>'.format(
             username=chat.username, msg_id=msg_id, title=title, chat_id=chat.id
         )
     elif invite_link:
-        return '{title} <a href="{invite_link}">{chat_id}</a>'.format(
+        return '{title} (<a href="{invite_link}">{chat_id}</a>)'.format(
             title=title, invite_link=invite_link, chat_id=chat.id
         )
     else:
-        return '{title} <code>{chat_id}</code>'.format(title=title, chat_id=chat.id)
+        return '{title} (<code>{chat_id}</code>)'.format(title=title, chat_id=chat.id)
     # end if
 # end def
 
+
+@bot.on_message("new_chat_members")
+def on_join(update, message):
+    assert_type_or_raise(message.new_chat_members, list)
+    if bot.user_id not in [user.id for user in message.new_chat_members if isinstance(user, User)]:
+        # not we were added
+        return
+    # end if
+
+    return HTMLMessage(LangEN.join_message.format(bot=bot.username, chat_id=message.chat.id) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else ""))
+#end def
 
 
