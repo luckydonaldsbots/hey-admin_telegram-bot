@@ -23,7 +23,7 @@ bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/in
 bot.init_app(app)
 
 assert_type_or_raise(bot.bot, Bot)
-AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@admins?(\\W|$).*")
+AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@(admins?|{bot})(\\W|$).*".format(bot=bot.username))
 
 
 @app.errorhandler(404)
@@ -104,17 +104,34 @@ def update_call_admins(message):
 
     # prepare the messages
     msgs = []
-    msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=format_user(message.from_peer), chat=message.chat)))
-    msgs.append(ForwardMessage(message.message_id, chat_id))
+    chat = format_chat(message)
+    user = format_user(message.from_peer)
+    print(repr(chat))
     if message.reply_to_message:
-        msgs.append(HTMLMessage(LangEN.admin_reply_info.format(user=format_user(message.reply_to_message.from_peer))))
+        # is reply
+        if message.reply_to_message.from_peer.id == message.from_peer.id:
+            # same user
+            msgs.append(HTMLMessage(LangEN.admin_reply_info_same.format(user=user, chat=chat)))
+        else:
+            # different user
+            msgs.append(HTMLMessage(LangEN.admin_reply_info.format(
+                user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer))
+            ))
+        # end if
         msgs.append(ForwardMessage(message.reply_to_message.message_id, chat_id))
+    else:
+        # isn't reply
+        msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat)))
     # end if
+    msgs.append(ForwardMessage(message.message_id, chat_id))
     batch = MessageWithReplies(*msgs)
 
     # notify each admin
     admins = bot.bot.get_chat_administrators(chat_id)
     for admin in admins:
+        if admin.user.is_bot:
+            continue  # can't send messages to bots
+        # end if
         batch.send(bot.bot, admin.user.id, reply_id=None)
     # end for
 # end def
@@ -128,12 +145,13 @@ def format_user(peer):
     else:
         name = ''
     # end if
-    username = ("@" + str(peer.username).strip() + " ") if peer.username else ""
-    return '{name}{username}<a href="tg://user?id={id}">{id}</a>'.format(name=name, username=username, id=peer.id)
+    username = ('<a href="t.me/{username}">@{username}</a> '.format(username=str(peer.username).strip())) if peer.username else ""
+    return '{name}{username}(<a href="tg://user?id={id}">{id}</a>)'.format(name=name, username=username, id=peer.id)
 # end if
 
 
-def format_chat(chat, msg_id):
+def format_chat(message):
+    chat, msg_id = message.chat, message.message_id
     assert isinstance(chat, Chat)
     assert isinstance(bot.bot, Bot)
 
