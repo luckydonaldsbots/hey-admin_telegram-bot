@@ -14,6 +14,9 @@ from luckydonaldUtils.exceptions import assert_type_or_raise
 import re
 from html import escape
 
+POSSIBLE_CHAT_TYPES = ("supergroup", "group", "channel")
+SEND_BACKOFF = 5
+
 __author__ = 'luckydonald'
 logger = logging.getLogger(__name__)
 logging.add_colored_handler(level=logging.DEBUG)
@@ -106,7 +109,7 @@ def update_call_admins(message):
     chat_id = message.chat.id
 
     # only do it in groups
-    if message.chat.type not in ("supergroup", "channel"):
+    if message.chat.type not in POSSIBLE_CHAT_TYPES:
         logger.debug("Discarding message (has no admins): {}".format(message))
         return
     # end def
@@ -147,30 +150,42 @@ def update_call_admins(message):
         # end if
         raise e
     # end try
+    failed_admins = []
     for admin in admins:
         if admin.user.is_bot:
             continue  # can't send messages to bots
         # end if
-        backoff = 5
-        while backoff > 0:
+        for backoff in range(SEND_BACKOFF):
             try:
                 batch.send(bot.bot, admin.user.id, reply_id=None)
                 break
             except TgApiServerException as e:
                 logger.info("Server Exception. Aborting.", exc_info=True)
+                if "bot can't initiate conversation with a user" in e.description:
+                    failed_admins.append(admin)
+                # end if
                 break
             except (TgApiException, RequestException) as e:
                 logger.exception("Unknown Exception. Retrying.")
             # end if
-            backoff -= 1
-        # end while
+        else:
+            # backoff exceeded
+            logger.debug("Admin failed: {}".format(format_user(admin.user)))
+        # end for
     # end for
+    if len(failed_admins) == 0:
+        return
+    elif len(failed_admins) == 1:
+        return HTMLMessage(LangEN.couldnt_contact_singular(admin=format_user(failed_admins[0].user), num=len(admins), bot=bot.username, chat_id=chat_id))
+    else:
+        return HTMLMessage(LangEN.couldnt_contact_plural([format_user(admin.user) for admin in failed_admins], num=len(admins), bot=bot.username, chat_id=chat_id))
+    # end if
 # end def
 
 
 def format_user(peer):
     assert isinstance(peer, User)
-    name = (str(peer.first_name) + " " + str(peer.last_name)).strip()
+    name = (str(peer.first_name) if peer.first_name else "" + " " + str(peer.last_name)).strip() if peer.last_name else ""
     if name:
         name = '<b>{name}</b> '.format(name=escape(name))
     else:
@@ -186,8 +201,20 @@ def format_chat(message):
     assert isinstance(chat, Chat)
     assert isinstance(bot.bot, Bot)
     logger.info(repr(message))
+    if chat.title:
+        title = "<b>{title}</b>".format(title=escape(chat.title))
+    else:
+        title = "<i>{untitled_chat}</i>".format(untitled_chat=LangEN.untitled_chat)
+    # end if
+    if chat.username:
+        return '{title} <a href="t.me/{username}/{msg_id}">@{username}</a>'.format(
+            username=chat.username, msg_id=msg_id, title=title, chat_id=chat.id
+        )
+    # end if
+
+    # try getting an invite link.
     invite_link = chat.invite_link
-    if chat.type == "supergroup" and not invite_link:
+    if chat.type in ("supergroup", "channel") and not invite_link:
         try:
             invite_link = bot.bot.export_chat_invite_link(chat.id)
         except:
@@ -198,17 +225,8 @@ def format_chat(message):
         invite_link = chat.invite_link
     except:
         pass
-    # end if
-    if chat.title:
-        title = "<b>{title}</b>".format(title=escape(chat.title))
-    else:
-        title = "<i>{untitled_chat}</i>".format(untitled_chat=LangEN.untitled_chat)
-    # end if
-    if chat.username:
-        return '{title} <a href="t.me/{username}/{msg_id}">@{username}</a>'.format(
-            username=chat.username, msg_id=msg_id, title=title, chat_id=chat.id
-        )
-    elif invite_link:
+        # end if
+    if invite_link:
         return '{title} (<a href="{invite_link}">{chat_id}</a>)'.format(
             title=title, invite_link=invite_link, chat_id=chat.id
         )
