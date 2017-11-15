@@ -10,3 +10,4 @@ services:
       SENTRY_DSN:
       URL_PATH:
       URL_HOSTNAME:
+      HEALTHCHECK_URL: "/test"

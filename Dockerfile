@@ -16,6 +16,9 @@ ENV USER_UID $USER_UID
 ENV PIP_NO_CACHE_DIR off
 ENV PIP_DISABLE_PIP_VERSION_CHECK on
 
+# To force docker to build the RUN step again, change this value.
+ARG DOCKER_CACHE_KILLER=2
+
 RUN set -x \
     # make überstart executable
 	&& apt-get update \
@@ -26,7 +29,7 @@ RUN set -x \
     # utilities
         nano \
     # install python wsgi
-    && pip install --upgrade pip \
+    && pip install --upgrade pip -e git://github.com/luckydonald-forks/uwsgi-tools.git@master#egg=uwsgi-tools \
     && rm -rfv /var/lib/apt/lists/* \
     # install gosu (root stepdown)
     && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
@@ -43,11 +46,13 @@ RUN set -x \
 
 WORKDIR /app
 ENTRYPOINT ["/entrypoint.sh"]
+HEALTHCHECK --start-period=5s CMD ["/healthcheck.sh", "--timeout", "5"]
 
 COPY $FOLDER/entrypoint.sh      /
+COPY $FOLDER/healthcheck.sh     /
 COPY $FOLDER/uwsgi.ini          /config/
 COPY $FOLDER/requirements.txt   /config/
-RUN chmod +x /entrypoint.sh  &&  pip install -r /config/requirements.txt
+RUN chmod +x /entrypoint.sh /healthcheck.sh &&  pip install -r /config/requirements.txt
 
 
 COPY $FOLDER/code /app

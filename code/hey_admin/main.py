@@ -34,13 +34,19 @@ AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@(admins?|{bot})(\\W|$).*".format(bot=b
 
 @app.errorhandler(404)
 def url_404(error):
-    return "Nope."
+    return "Nope.", 404
 # end def
 
 
 @app.route("/", methods=["GET","POST"])
 def url_root():
     return "Yep."
+# end def
+
+
+@app.route("/test", methods=["GET","POST"])
+def url_test():
+    return "Success", 200
 # end def
 
 
