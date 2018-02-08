@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, url_for
+from flask import Flask, url_for, jsonify
 from luckydonaldUtils.logger import logging
 from pytgbot import Bot
 from pytgbot.api_types.receivable.peer import Chat, User
@@ -47,6 +47,28 @@ def url_root():
 @app.route("/test", methods=["GET","POST"])
 def url_test():
     return "Success", 200
+# end def
+
+@app.route("/healthcheck")
+def url_healthcheck():
+    """
+    Checks if telegram api works.
+    :return:
+    """
+    status = {}
+
+    try:
+        me = bot.bot.get_me()
+        assert isinstance(me, User)
+        logger.info(me)
+        status['telegram api'] = True
+    except Exception as e:
+        logger.exception("Telegram API failed.")
+        status['telegram api'] = False
+    # end try
+
+    success = all(x for x in status.values())
+    return jsonify(status), 200 if success else 500
 # end def
 
 
