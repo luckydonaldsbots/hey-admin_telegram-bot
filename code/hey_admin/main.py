@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, url_for, jsonify
+import re
+from flask import Flask, jsonify
 from luckydonaldUtils.logger import logging
+from luckydonaldUtils.exceptions import assert_type_or_raise
 from pytgbot import Bot
 from pytgbot.api_types.receivable.peer import Chat, User
 from pytgbot.api_types.receivable.updates import Message, Update
@@ -8,11 +10,10 @@ from pytgbot.exceptions import TgApiServerException, TgApiException
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 from requests import RequestException
 
+from .gitinfo import VERSION_STR
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
-from luckydonaldUtils.exceptions import assert_type_or_raise
-import re
-from html import escape
+
 
 POSSIBLE_CHAT_TYPES = ("supergroup", "group", "channel")
 SEND_BACKOFF = 5
@@ -271,8 +272,11 @@ def on_join(update, message):
         # not we were added
         return
     # end if
-
     return HTMLMessage(LangEN.join_message.format(bot=bot.username, chat_id=message.chat.id) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else ""))
 #end def
 
 
+@bot.command('version')
+def cmd_version(update, text):
+    return HTMLMessage('<code>{version}</code>'.format(VERSION_STR))
+# end def
