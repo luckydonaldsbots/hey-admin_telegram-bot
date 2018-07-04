@@ -29,7 +29,7 @@ bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/in
 bot.init_app(app)
 
 assert_type_or_raise(bot.bot, Bot)
-AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@(admins?|{bot})(\\W|$).*".format(bot=bot.username))
+AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@(admins?)(\\W|$).*")
 
 
 @app.errorhandler(404)
