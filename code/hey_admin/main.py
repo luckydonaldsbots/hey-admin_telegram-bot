@@ -9,6 +9,7 @@ from pytgbot.api_types.receivable.updates import Message, Update
 from pytgbot.exceptions import TgApiServerException, TgApiException
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 from requests import RequestException
+from html import escape
 
 from .gitinfo import VERSION_STR
 from .langs.en import Lang as LangEN
@@ -278,5 +279,5 @@ def on_join(update, message):
 
 @bot.command('version')
 def cmd_version(update, text):
-    return HTMLMessage('<code>{version}</code>'.format(VERSION_STR))
+    return HTMLMessage('<code>{version}</code>'.format(version=escape(VERSION_STR)))
 # end def
