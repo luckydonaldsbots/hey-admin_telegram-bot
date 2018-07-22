@@ -11,7 +11,7 @@ from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 from requests import RequestException
 from html import escape
 
-from .gitinfo import VERSION_STR
+from .gitinfo import bot as version_tbp
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
 
@@ -29,6 +29,7 @@ app = Flask(__name__)
 # sentry = add_error_reporting(app)
 bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/income/{API_KEY}")
 bot.init_app(app)
+bot.register_tblueprint(version_tbp)
 
 assert_type_or_raise(bot.bot, Bot)
 AT_ADMIN_REGEX = re.compile(".*([^\\w]|^)@(admins?)(\\W|$).*")
@@ -275,9 +276,3 @@ def on_join(update, message):
     # end if
     return HTMLMessage(LangEN.join_message.format(bot=bot.username, chat_id=message.chat.id) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else ""))
 #end def
-
-
-@bot.command('version')
-def cmd_version(update, text):
-    return HTMLMessage('<code>{version}</code>'.format(version=escape(VERSION_STR)))
-# end def
