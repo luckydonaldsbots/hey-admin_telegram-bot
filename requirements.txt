@@ -8,3 +8,4 @@ flask
 
 ## Diversa ##
 raven[flask]  # debug
+luckydonald-utils==0.61

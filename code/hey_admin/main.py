@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 import re
 from flask import Flask, jsonify
-from luckydonaldUtils.logger import logging
-from luckydonaldUtils.exceptions import assert_type_or_raise
 from pytgbot import Bot
-from pytgbot.api_types.receivable.peer import Chat, User
-from pytgbot.api_types.receivable.updates import Message, Update
 from pytgbot.exceptions import TgApiServerException, TgApiException
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
+from luckydonaldUtils.logger import logging
+from luckydonaldUtils.exceptions import assert_type_or_raise
+from luckydonaldUtils.tg_bots.gitinfo import version_bp, version_tbp
+from pytgbot.api_types.receivable.peer import Chat, User
+from pytgbot.api_types.receivable.updates import Message, Update
+
 from requests import RequestException
 from html import escape
 
-from .gitinfo import bot as version_tbp
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
 
@@ -25,8 +26,9 @@ logging.add_colored_handler(level=logging.DEBUG)
 
 from teleflask import Teleflask
 app = Flask(__name__)
-
+app.register_blueprint(version_bp)
 # sentry = add_error_reporting(app)
+
 bot = Teleflask(API_KEY, hostname=URL_HOSTNAME, hostpath=URL_PATH, hookpath="/income/{API_KEY}")
 bot.init_app(app)
 bot.register_tblueprint(version_tbp)
