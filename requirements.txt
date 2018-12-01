@@ -4,8 +4,13 @@ flask
 
 ## Bot ##
 # teleflask==2.0.0  # telegram bot, flask-like!
--e git://github.com/luckydonald/teleflask.git@2bde5b70051467282862f2c5d32c80127b956073#egg=teleflask_2bde5b  # 2.0.0.dev7, Next: 2.0.0  # 2018-07-22 Blueprints
+-e git://github.com/luckydonald/teleflask.git@v2.0.0.dev18#egg=teleflask_2_0_0_dev18
+
+# pytgbot
+-e git://github.com/luckydonald/pytgbot.git@bd4043631c9737cb82f5d0aa9a367e0f9d1c7fb1#egg=pytgbot_bd4043  # 2018-11-24 after 4.0.2, adds fixed InputFile.size
+
+# luckydonald-utils
+luckydonald-utils==0.63
 
 ## Diversa ##
 raven[flask]  # debug
-luckydonald-utils==0.61
