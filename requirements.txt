@@ -10,7 +10,7 @@ flask
 -e git://github.com/luckydonald/pytgbot.git@bd4043631c9737cb82f5d0aa9a367e0f9d1c7fb1#egg=pytgbot_bd4043  # 2018-11-24 after 4.0.2, adds fixed InputFile.size
 
 # luckydonald-utils
-luckydonald-utils==0.63
+luckydonald-utils==0.72
 
 ## Diversa ##
 raven[flask]  # debug
