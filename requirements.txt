@@ -1,16 +1,18 @@
-## Web ##
+# uwsgi
 uwsgi
+
+# flask
 flask
 
-## Bot ##
-# teleflask==2.0.0  # telegram bot, flask-like!
--e git://github.com/luckydonald/teleflask.git@v2.0.0.dev18#egg=teleflask_2_0_0_dev18
+# teleflask
+-e git://github.com/luckydonald/teleflask.git@c340ab321a653fbeba1defe3e2cf87e3ba18432a#egg=teleflask_c340ab
 
 # pytgbot
--e git://github.com/luckydonald/pytgbot.git@bd4043631c9737cb82f5d0aa9a367e0f9d1c7fb1#egg=pytgbot_bd4043  # 2018-11-24 after 4.0.2, adds fixed InputFile.size
+pytgbot==4.1.1
 
 # luckydonald-utils
-luckydonald-utils==0.72
+-e git://github.com/luckydonald/python-utils.git@10e9b79e22f2fc805db80f16c382fb05d317ba88#egg=luckydonald-utils
 
-## Diversa ##
-raven[flask]  # debug
+# raven[flask]
+raven[flask]
+
