@@ -8,7 +8,7 @@ flask
 -e git://github.com/luckydonald/teleflask.git@c340ab321a653fbeba1defe3e2cf87e3ba18432a#egg=teleflask_c340ab
 
 # pytgbot
--e git://github.com/luckydonald/pytgbot.git@5f433ca9e467a3cd5979b661373755f8a2ab698a#egg=pytgbot_5f433c  # 2019-08-14 after 4.4, with Sticker.is_animated etc.
+-e git://github.com/luckydonald/pytgbot.git@5f433ca9e467a3cd5979b661373755f8a2ab698a#egg=pytgbot_5f433c  # 2019-08-16 after 4.4, Sticker.is_animated
 
 # luckydonald-utils
 -e git://github.com/luckydonald/python-utils.git@10e9b79e22f2fc805db80f16c382fb05d317ba88#egg=luckydonald-utils
