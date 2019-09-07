@@ -173,6 +173,7 @@ def update_call_admins(message):
     # end if
     msgs.append(ForwardMessage(message.message_id, chat_id))
     batch = MessageWithReplies(*msgs)
+    batch.reply_id = None
 
     # notify each admin
     try:
@@ -190,7 +191,8 @@ def update_call_admins(message):
         # end if
         for backoff in range(SEND_BACKOFF):
             try:
-                batch.send(bot.bot, admin.user.id, reply_id=None)
+                batch.receiver = admin.user.id
+                batch.send(bot.bot)
                 break
             except TgApiServerException as e:
                 logger.info("Server Exception. Aborting.", exc_info=True)
