@@ -165,8 +165,8 @@ def update_call_admins(message):
                 user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer)
             )
         # end if
-        msgs.append(ForwardMessage(message.reply_to_message.message_id, chat_id))
         msgs.append(HTMLMessage(text + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
+        msgs.append(ForwardMessage(message.reply_to_message.message_id, chat_id))
     else:
         # isn't reply
         msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
