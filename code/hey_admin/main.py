@@ -186,7 +186,7 @@ def update_call_admins(message):
     # end try
     failed_admins = []
     for admin in admins:
-        logger.debug(f"Found admin {admin.user!s}.")
+        logger.debug(f"Found admin {format_user(admin.user)}: {admin.user!s}.")
         if admin.user.is_bot:
             continue  # can't send messages to bots
         # end if
