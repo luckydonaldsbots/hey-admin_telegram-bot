@@ -249,20 +249,25 @@ def format_chat(message):
         )
     # end if
 
-    # try getting an invite link.
+    # get updated chat information, i.e. also includes chat.invite_link
+    if not chat.invite_link:
+        try:
+            chat = bot.bot.get_chat(chat.id)
+        except:
+            logger.warn("Could not (re)load chat info.", exc_info=True)
+        # end try
+    # end if
+
+    # try generating an invite link.
     invite_link = chat.invite_link
     if chat.type in ("supergroup", "channel") and not invite_link:
         try:
             invite_link = bot.bot.export_chat_invite_link(chat.id)
         except:
-            logger.exception("export_chat_invite_link Exception.")
+            logger.warn("export_chat_invite_link Exception.", exc_info=True)
         # end try
-    try:
-        chat = bot.bot.get_chat(chat.id)
-        invite_link = chat.invite_link
-    except:
-        pass
-        # end if
+    # end try
+
     if invite_link:
         return '{title} (<a href="{invite_link}">{chat_id}</a>)'.format(
             title=title, invite_link=invite_link, chat_id=chat.id
