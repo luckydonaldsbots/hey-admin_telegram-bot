@@ -305,8 +305,8 @@ def format_chat(message: Message):
     # end try
 
     if invite_link:
-        return '{title} (<a href="{invite_link}">(Join))</a>)'.format(
-            title=title, invite_link=invite_link, chat_id=chat.id
+        return '{title} (<a href="{invite_link}">{join_link_title}</a>)'.format(
+            title=title, invite_link=invite_link, chat_id=chat.id, join_link_title=escape(LangEN.join_link_title)
         )
     else:
         return '{title} (<code>{chat_id}</code>)'.format(title=title, chat_id=chat.id)

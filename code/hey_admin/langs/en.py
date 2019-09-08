@@ -4,6 +4,7 @@ class Lang(object):
     admin_message_info = 'You were <a href="{msg_link!s}">requested</a> in chat {chat} by user {user}:'
     admin_reply_info = 'In chat {chat} for the message</a> by {reply_user} the user {user} <a href="{msg_link!s}">requested</a> you:'
     admin_reply_info_same = 'You were <a href="{msg_link!s}">requested</a> in chat {chat} by user {user} about his own message. Strange.'
+    join_link_title = "Join"  # a link title, click it to join that chat.
     untitled_chat = "Untitled chat"
     help_message = "This bot is will help users call out for all chat admins, " \
                    "simply by mentioning <code>@admin</code> or <code>@admins</code>."
