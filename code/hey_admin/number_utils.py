@@ -23,7 +23,7 @@ def num_substring_start(number: int, length: int) -> int:
 # end def
 
 
-def from_supergroup(number: int, length: int) -> int:
+def from_supergroup(number: int) -> int:
     number = number * -1  # turn positive
     return number - 10 ** int(floor(log10(number)))
 # end def
