@@ -200,6 +200,11 @@ def update_call_admins(message):
             try:
                 logger.debug(f"Sending to admin {admin_formatted!s}")
                 batch.receiver = admin.user.id
+                batch.top_message.receiver = admin.user.id
+                for reply in batch.reply_messages:
+                    reply.receiver = admin.user.id
+                # end def
+
                 batch.send(bot.bot)
                 logger.debug(f"Sending to admin {admin_formatted!s}")
                 break
