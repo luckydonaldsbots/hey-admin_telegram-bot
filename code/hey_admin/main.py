@@ -259,7 +259,7 @@ def format_user(peer):
 def format_message_permalink(msg: Message) -> str:
     # we'll build the short chat_id from the long one.
     # supergroup are prefixed with -100, channels are just negative. Private messages are positive.
-    short_chat_id = msg.from_peer.id
+    short_chat_id = msg.chat.id
     if -1002147483647 <= short_chat_id < -1000000000000:
         short_chat_id = from_supergroup(short_chat_id)  # removes leading -100
     elif -2147483647 <= short_chat_id < 0:
