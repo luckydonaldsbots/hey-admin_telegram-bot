@@ -1,31 +1,34 @@
 # -*- coding: utf-8 -*-
-import random
 import re
+import random
+
+from html import escape
 from flask import Flask, jsonify
 from pytgbot import Bot
+from requests import RequestException
+from teleflask import Teleflask
 from pytgbot.exceptions import TgApiServerException, TgApiException
 from teleflask.messages import MessageWithReplies, HTMLMessage, ForwardMessage
 from luckydonaldUtils.logger import logging
 from luckydonaldUtils.exceptions import assert_type_or_raise
 from luckydonaldUtils.tg_bots.gitinfo import version_bp, version_tbp
 from pytgbot.api_types.receivable.peer import Chat, User
-from pytgbot.api_types.receivable.updates import Message, Update
+from pytgbot.api_types.receivable.updates import Message
 
-from requests import RequestException
-from html import escape
-
+from .number_utils import from_supergroup
 from .langs.en import Lang as LangEN
 from .secrets import API_KEY, URL_HOSTNAME, URL_PATH
 
 
-POSSIBLE_CHAT_TYPES = ("supergroup", "group", "channel")
-SEND_BACKOFF = 5
-
 __author__ = 'luckydonald'
+
 logger = logging.getLogger(__name__)
 logging.add_colored_handler(level=logging.DEBUG)
 
-from teleflask import Teleflask
+POSSIBLE_CHAT_TYPES = ("supergroup", "group", "channel")
+SEND_BACKOFF = 5
+
+
 app = Flask(__name__)
 app.register_blueprint(version_bp)
 # sentry = add_error_reporting(app)
@@ -152,25 +155,27 @@ def update_call_admins(message):
     msgs = []
     chat = format_chat(message)
     user = format_user(message.from_peer)
+    link = format_message_permalink(message)
+
     logger.debug("user: " + repr(user))
     logger.debug("chat: " + repr(chat))
     if message.reply_to_message:
         # is reply
         if message.reply_to_message.from_peer.id == message.from_peer.id:
             # same user
-            text = LangEN.admin_reply_info_same.format(user=user, chat=chat)
+            text = LangEN.admin_reply_info_same.format(user=user, chat=chat, msg_link=link)
 
         else:
             # different user
             text = LangEN.admin_reply_info.format(
-                user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer)
+                user=user, chat=chat, reply_user=format_user(message.reply_to_message.from_peer), msg_link=link
             )
         # end if
         msgs.append(HTMLMessage(text + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
         msgs.append(ForwardMessage(message.reply_to_message.message_id, chat_id))
     else:
         # isn't reply
-        msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
+        msgs.append(HTMLMessage(LangEN.admin_message_info.format(user=user, chat=chat, msg_link=link) + (LangEN.unstable_text if bot.username == "hey_admin_bot" else "")))
     # end if
     msgs.append(ForwardMessage(message.message_id, chat_id))
     batch = MessageWithReplies(*msgs)
@@ -251,7 +256,20 @@ def format_user(peer):
 # end if
 
 
-def format_chat(message):
+def format_message_permalink(msg: Message) -> str:
+    # we'll build the short chat_id from the long one.
+    # supergroup are prefixed with -100, channels are just negative. Private messages are positive.
+    short_chat_id = msg.from_peer.id
+    if -1002147483647 <= short_chat_id < -1000000000000:
+        short_chat_id = from_supergroup(short_chat_id)  # removes leading -100
+    elif -2147483647 <= short_chat_id < 0:
+        short_chat_id = -1 * short_chat_id
+    # end if
+    return f"https://t.me/c/{short_chat_id}/{msg.message_id}"
+# end def
+
+
+def format_chat(message: Message):
     chat, msg_id = message.chat, message.message_id
     assert isinstance(chat, Chat)
     assert isinstance(bot.bot, Bot)
@@ -268,7 +286,7 @@ def format_chat(message):
     # end if
 
     # get updated chat information, i.e. also includes chat.invite_link
-    if not chat.invite_link:
+    if not chat.username and not chat.invite_link:
         try:
             chat = bot.bot.get_chat(chat.id)
         except:
@@ -287,7 +305,7 @@ def format_chat(message):
     # end try
 
     if invite_link:
-        return '{title} (<a href="{invite_link}">{chat_id}</a>)'.format(
+        return '{title} (<a href="{invite_link}">(Join))</a>)'.format(
             title=title, invite_link=invite_link, chat_id=chat.id
         )
     else:
