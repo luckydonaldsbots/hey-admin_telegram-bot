@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import random
 import re
 from flask import Flask, jsonify
 from pytgbot import Bot
@@ -186,6 +187,7 @@ def update_call_admins(message):
     # end try
 
     failed_admins = []
+    random.shuffle(admins)
     for admin in admins:
         admin_formatted = format_user(admin.user)
         logger.debug(f"Found admin {admin_formatted}: {admin.user!s}.")
