@@ -143,7 +143,7 @@ def update_call_admins(message):
 
     # only do it in groups
     if message.chat.type not in POSSIBLE_CHAT_TYPES:
-        logger.debug("Discarding message (has no admins): {}".format(message))
+        logger.debug("Discarding message (not a chat type with admins): {}".format(message))
         return
     # end def
 
@@ -184,22 +184,30 @@ def update_call_admins(message):
         # end if
         raise e
     # end try
+
     failed_admins = []
     for admin in admins:
-        logger.debug(f"Found admin {format_user(admin.user)}: {admin.user!s}.")
+        admin_formatted = format_user(admin.user)
+        logger.debug(f"Found admin {admin_formatted}: {admin.user!s}.")
         if admin.user.is_bot:
+            logger.debug("Skipping admin, is bot.")
             continue  # can't send messages to bots
         # end if
         for backoff in range(SEND_BACKOFF):
+            logger.debug(f"Sending from {chat_id} to {batch.receiver!r} ({backoff}/{SEND_BACKOFF}).")
             try:
-                logger.debug(f"Sending to admin {admin.user!s}")
+                logger.debug(f"Sending to admin {admin_formatted!s}")
                 batch.receiver = admin.user.id
                 batch.send(bot.bot)
+                logger.debug(f"Sending to admin {admin_formatted!s}")
                 break
             except TgApiServerException as e:
-                logger.info("Server Exception. Aborting.", exc_info=True)
+                logger.info("Server Exception. Aborting.")
                 if "bot can't initiate conversation with a user" in e.description:
+                    logger.debug("Can't contact admin, not started.")
                     failed_admins.append(admin)
+                else:
+                    logger.warn('sending to admin failed', exc_info=True)
                 # end if
                 break
             except (TgApiException, RequestException) as e:
@@ -210,11 +218,15 @@ def update_call_admins(message):
             logger.debug("Admin failed: {}".format(format_user(admin.user)))
         # end for
     # end for
+    logger.debug("That's all the admins.")
     if len(failed_admins) == 0:
+        logger.debug("Sent to all admins are successfully.")
         return
     elif len(failed_admins) == 1:
+        logger.debug("Sent to all admins but one.")
         return HTMLMessage(LangEN.couldnt_contact_singular(admin=format_user(failed_admins[0].user), num=len(admins), bot=bot.username, chat_id=chat_id))
     else:
+        logger.debug(f"Sent to all admins but {failed_admins}.")
         return HTMLMessage(LangEN.couldnt_contact_plural([format_user(admin.user) for admin in failed_admins], num=len(admins), bot=bot.username, chat_id=chat_id))
     # end if
 # end def
