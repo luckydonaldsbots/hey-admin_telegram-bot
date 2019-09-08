@@ -196,15 +196,14 @@ def update_call_admins(message):
             continue  # can't send messages to bots
         # end if
         for backoff in range(SEND_BACKOFF):
-            logger.debug(f"Sending from {chat_id} to {batch.receiver!r} ({backoff}/{SEND_BACKOFF}).")
-            try:
-                logger.debug(f"Sending to admin {admin_formatted!s}")
-                batch.receiver = admin.user.id
-                batch.top_message.receiver = admin.user.id
-                for reply in batch.reply_messages:
-                    reply.receiver = admin.user.id
-                # end def
+            logger.debug(f"Sending from {chat_id} to {admin.user.id} {admin_formatted!s} (old: {batch.receiver!r}). Try {backoff + 1}/{SEND_BACKOFF}.")
+            batch.receiver = admin.user.id
+            batch.top_message.receiver = admin.user.id
+            for reply in batch.reply_messages:
+                reply.receiver = admin.user.id
+            # end def
 
+            try:
                 batch.send(bot.bot)
                 logger.debug(f"Sending to admin {admin_formatted!s}")
                 break
