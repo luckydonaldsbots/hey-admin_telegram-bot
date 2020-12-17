@@ -5,7 +5,7 @@ uwsgi
 flask==1.1.2
 
 # teleflask
--e git://github.com/luckydonald/teleflask.git@ea5f1925c58f42ad83d417660ba6665c7af0d9a2#egg=teleflask
+git+https://github.com/luckydonald/teleflask.git@ea5f1925c58f42ad83d417660ba6665c7af0d9a2#egg=teleflask
 
 # pytgbot
 pytgbot==5.0b4
